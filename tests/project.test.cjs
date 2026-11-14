@@ -32,3 +32,13 @@ test('build GitHub con release e updater solo per tag versionati',()=>{
   assert.match(workflow,/--features updates/);
   assert.match(file('scripts/configure_updates.py'),/latest\.json/);
 });
+
+
+test('modulo vendite con barra Salva sempre visibile',()=>{
+  const css=file('frontend/style.css');
+  const js=file('frontend/app.js');
+  assert.match(css, /#entry-form\{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;overflow:hidden;\}/);
+  assert.match(css, /#entry-form>\.dialog-body\{flex:1 1 auto;min-height:0;overflow-y:auto;/);
+  assert.match(css, /#entry-form>\.dialog-footer\{flex:0 0 auto;/);
+  assert.ok(js.includes("'Salva vendita'"));
+});

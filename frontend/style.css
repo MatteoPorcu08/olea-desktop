@@ -80,3 +80,13 @@ table{border-spacing:0} table tbody tr{transition:background .12s}table tbody tr
 .splash-icon{background:#1f5339;color:#f4efcd;width:75px;height:75px;border-radius:22px;display:grid;place-items:center;font-size:44px;box-shadow:0 16px 35px #16442e30}
 @media(max-width:1220px){.desktop-management{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){button,.nav-link,.btn,.metric,.panel{transition:none!important}.hero::after{display:none}}
+
+/* OLEA 3.0.1 — Modali: barra Salva sempre visibile anche su finestre basse. */
+.dialog{min-height:0;max-height:min(92vh,calc(100dvh - 28px));}
+.dialog-head{flex:0 0 auto;}
+#modal-body{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;overflow:hidden;}
+#entry-form{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;overflow:hidden;}
+#entry-form>.dialog-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;}
+#entry-form>.dialog-footer{flex:0 0 auto;position:relative;z-index:1;box-shadow:0 -6px 16px rgba(18,55,35,.05);}
+#entry-form button[type="submit"]{min-height:43px;font-size:12.5px;}
+@media(max-width:760px){#entry-form>.dialog-footer{flex-wrap:wrap;gap:9px;}#entry-form>.dialog-footer>.right{width:100%;justify-content:flex-end;}}
