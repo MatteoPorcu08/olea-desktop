@@ -288,7 +288,10 @@ fn database_location(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 async fn check_updates(app: AppHandle) -> Result<Option<String>, String> {
     use tauri_plugin_updater::UpdaterExt;
-    let updater = app.updater().map_err(|e| e.to_string())?;
+    // Timeout esplicito: l'assenza di rete non deve bloccare l'applicazione.
+    let updater = app.updater_builder()
+        .timeout(Duration::from_secs(20))
+        .build().map_err(|e| e.to_string())?;
     let update = updater.check().await.map_err(|e| e.to_string())?;
     Ok(update.map(|u| u.version))
 }
@@ -303,9 +306,20 @@ async fn check_updates(_app: AppHandle) -> Result<Option<String>, String> {
 #[tauri::command]
 async fn install_updates(app: AppHandle) -> Result<(), String> {
     use tauri_plugin_updater::UpdaterExt;
-    if let Some(update) = app.updater().map_err(|e| e.to_string())?
-        .check().await.map_err(|e| e.to_string())? {
+    let updater = app.updater_builder()
+        .timeout(Duration::from_secs(30))
+        .build().map_err(|e| e.to_string())?;
+    if let Some(update) = updater.check().await.map_err(|e| e.to_string())? {
+        // Copia SQLite consistente prima di ogni installazione; se non riesce,
+        // interrompi l'aggiornamento senza rischiare le registrazioni.
+        let (conn, database) = connect_app(&app)?;
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)
+            .map_err(|e| e.to_string())?.as_secs();
+        let backup_folder = database.parent().ok_or("Cartella database non trovata")?;
+        backup_snapshot(&conn, backup_folder, &format!("pre-update-{timestamp}.sqlite3"))?;
+        drop(conn);
         update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
+        // Su Windows l'installer Tauri chiude l'applicazione automaticamente.
     }
     Ok(())
 }

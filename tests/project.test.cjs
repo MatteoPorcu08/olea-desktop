@@ -33,7 +33,6 @@ test('build GitHub con release e updater solo per tag versionati',()=>{
   assert.match(file('scripts/configure_updates.py'),/latest\.json/);
 });
 
-
 test('modulo vendite con barra Salva sempre visibile',()=>{
   const css=file('frontend/style.css');
   const js=file('frontend/app.js');
@@ -41,4 +40,21 @@ test('modulo vendite con barra Salva sempre visibile',()=>{
   assert.match(css, /#entry-form>\.dialog-body\{flex:1 1 auto;min-height:0;overflow-y:auto;/);
   assert.match(css, /#entry-form>\.dialog-footer\{flex:0 0 auto;/);
   assert.ok(js.includes("'Salva vendita'"));
+});
+
+test('updater firmato: workflow, setup locale e rilascio stabile',()=>{
+  const release=file('.github/workflows/release.yml');
+  assert.match(release,/workflow_dispatch:/);
+  assert.match(release,/TAURI_SIGNING_PRIVATE_KEY:/);
+  assert.match(release,/uploadUpdaterJson: true/);
+  assert.match(release,/updaterJsonPreferNsis: true/);
+  assert.match(release,/scripts\/configure_updates.py/);
+  assert.match(release,/createUpdaterArtifacts|--features updates/);
+  const setup=file('scripts/setup-update-signing.ps1');
+  assert.ok(setup.includes('gh secret set TAURI_SIGNING_PRIVATE_KEY'));
+  assert.ok(setup.includes('gh variable set OLEA_UPDATER_PUBKEY'));
+  const rust=file('src-tauri/src/lib.rs');
+  assert.ok(rust.includes('pre-update-'));
+  const js=file('frontend/app.js');
+  assert.ok(js.includes('setTimeout(()=>checkForUpdates(true),1400)'));
 });

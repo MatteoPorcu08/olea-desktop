@@ -3,7 +3,7 @@
 const KEY='olea_site_v2_database';
 const DESKTOP=!!window.__TAURI__?.core?.invoke;
 const desktopInvoke=(command,args={})=>window.__TAURI__.core.invoke(command,args);
-let desktopRevision=0, desktopHistory=[], desktopReady=!DESKTOP, saveBusy=false, desktopLocation='';
+let desktopRevision=0, desktopHistory=[], desktopReady=!DESKTOP, saveBusy=false, desktopLocation='', updateCheckBusy=false;
 const HISTORY_KEY='olea_site_v2_history';
 const OLD_KEY='olea_gestionale_2026_v2';
 const TODAY=new Date();
@@ -284,15 +284,18 @@ async function makeDatabaseBackup(){
 }
 async function checkForUpdates(silent=false){
  if(!DESKTOP){if(!silent)toast('Gli aggiornamenti automatici sono disponibili nell’app Windows.');return;}
- if(!desktopReady||saveBusy)return;
+ if(!desktopReady||saveBusy||updateCheckBusy)return;
+ if(ui.openForm){if(!silent)toast('Chiudi o salva la registrazione prima di aggiornare.');return;}
+ updateCheckBusy=true;
  try{
    const version=await desktopInvoke('check_updates');
    if(!version){if(!silent)toast('OLEA è aggiornato.');return;}
-   if(!confirm('È disponibile OLEA '+version+'. Vuoi scaricare e installare questa versione firmata?'))return;
-   await desktopInvoke('backup_database');
-   toast('Download e installazione dell’aggiornamento in corso…');
+   if(!confirm('Disponibile OLEA '+version+'. Vuoi installare l’aggiornamento verificato? Verrà creato un backup del database.'))return;
+   toast('Creazione backup, download e installazione dell’aggiornamento…');
    await desktopInvoke('install_updates');
- }catch(e){if(!silent)toast('Aggiornamenti non disponibili: '+String(e),'error');}
+   toast('Aggiornamento installato. Riavvia OLEA se non si è riaperto automaticamente.');
+ }catch(e){if(!silent)toast('Aggiornamento non riuscito: '+String(e),'error');}
+ finally{updateCheckBusy=false;}
 }
 window.addEventListener('beforeunload',e=>{if(saveBusy){e.preventDefault();e.returnValue='Salvataggio in corso';}});
 bootDesktop();
