@@ -1,0 +1,18 @@
+node_modules/
+src-tauri/target/
+src-tauri/gen/
+.DS_Store
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+.env
+.env.*
+!*.env.example
+# Il file con la chiave PRIVATA di firma deve restare fuori dal progetto.
+*.key
+*.key.pub
+src-tauri/tauri-updater.conf.json

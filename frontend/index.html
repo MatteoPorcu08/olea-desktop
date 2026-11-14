@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#193e2c" />
+<meta name="description" content="OLEA, gestionale per la produzione e la vendita dell'olio di oliva. Fatturato, incassi, spese e ricavo netto sotto controllo." />
+<title>OLEA — Gestionale olio</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-icon" aria-hidden="true"><svg width="29" height="29" viewBox="0 0 32 32" fill="none"><path d="M8 24C8 13 20 7 26 5c0 13-5 22-15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 28c6-9 11-12 17-16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18 12c-4 1-7 0-9-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div><div class="brand-name">OLEA<span class="brand-dot">.</span></div><div class="brand-sub">GESTIONALE AGRICOLO</div></div></div>
+    <div class="sidebar-caption">WORKSPACE</div>
+    <nav id="side-nav" aria-label="Sezioni del gestionale">
+      <div class="nav-group" data-label="Analisi">
+        <button class="nav-link active" data-nav="dashboard"><span data-ico="layout-dashboard"></span><span>Panoramica</span></button>
+        <button class="nav-link" data-nav="reports"><span data-ico="chart-pie"></span><span>Bilancio e report</span></button>
+      </div>
+      <div class="nav-group" data-label="Attività">
+        <button class="nav-link" data-nav="sales"><span data-ico="shopping-bag"></span><span>Vendite</span><span class="nav-count" id="pending-count" hidden>0</span></button>
+        <button class="nav-link" data-nav="payments"><span data-ico="wallet"></span><span>Incassi</span></button>
+        <button class="nav-link" data-nav="customers"><span data-ico="users"></span><span>Clienti</span></button>
+        <button class="nav-link" data-nav="orchards"><span data-ico="trees"></span><span>Oliveti</span></button>
+        <button class="nav-link" data-nav="harvests"><span data-ico="sprout"></span><span>Produzione</span></button>
+        <button class="nav-link" data-nav="stock"><span data-ico="package"></span><span>Magazzino</span></button>
+        <button class="nav-link" data-nav="expenses"><span data-ico="receipt"></span><span>Spese</span></button>
+      </div>
+      <div class="nav-group" data-label="Sistema">
+        <button class="nav-link" data-nav="archive"><span data-ico="hard-drive-download"></span><span>Archivio e backup</span></button>
+      </div>
+    </nav>
+    <div class="side-bottom">
+      <div class="save-state"><span class="save-dot" id="save-dot"></span><div><strong id="save-state-title">Archivio locale</strong><small id="save-state-time">In attesa di modifiche</small></div></div>
+      <div class="side-version">OLEA Desktop <span>v3.0</span></div>
+    </div>
+  </aside>
+  <div class="content-shell">
+    <header class="topbar">
+      <div class="breadcrumb"><button id="mobile-menu" aria-label="Apri menu" title="Apri menu"><span data-ico="menu"></span></button><span class="breadcrumb-label">OLEA</span><span class="crumb-sep">/</span><span id="crumb-current">Panoramica</span></div>
+      <div class="top-actions"><label class="season-control"><span data-ico="calendar-days"></span><span>Campagna</span><select id="season-select" aria-label="Seleziona campagna"></select></label><button class="btn btn-light btn-top" data-action="backup" title="Esporta copia dati"><span data-ico="download"></span><span>Backup</span></button><button class="btn btn-light btn-top" data-action="check-updates" title="Controlla nuove versioni"><span data-ico="download"></span><span>Aggiornamenti</span></button><button class="btn btn-primary btn-top" data-action="add-sale"><span data-ico="plus"></span><span>Nuova vendita</span></button></div>
+    </header>
+    <div class="content-area"><div class="storage-warning" id="storage-warning" hidden></div><div id="view" class="view" aria-live="polite"></div><footer class="footer"><span>OLEA · La tua produzione, in ordine.</span><span>Archivio protetto sul computer · <a href="#archive" data-nav="archive">Gestisci backup</a></span></footer></div>
+  </div>
+</div>
+<div class="desktop-splash" id="desktop-splash" hidden><div class="splash-icon">❧</div><strong>OLEA</strong><span>Caricamento archivio sicuro…</span></div>
+<div class="overlay" id="modal-overlay" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-head"><div><div class="section-overline">REGISTRAZIONE</div><h2 id="dialog-title">Nuova registrazione</h2></div><button class="icon-button" id="modal-close" title="Chiudi"><span data-ico="x"></span></button></div><div id="modal-body"></div></div></div>
+<div class="toast-zone" id="toast-zone" aria-live="polite"></div>
+<input type="file" id="import-file" accept="application/json,.json" hidden />
+<script src="app.js"></script>
+</body>
+</html>

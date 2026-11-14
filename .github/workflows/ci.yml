@@ -1,0 +1,27 @@
+name: OLEA — Test
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Rust + frontend (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Test frontend
+        run: npm run test:js
+      - name: Test database SQLite
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Verifica pacchetto Windows senza updater
+        run: |
+          npm install
+          npx tauri build
