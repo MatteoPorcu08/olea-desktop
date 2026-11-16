@@ -24,8 +24,8 @@ jobs:
         run: npm run test:js
       - name: Test database SQLite
         run: cargo test --manifest-path src-tauri/Cargo.toml
-      - name: Verifica compilazione del modulo aggiornamenti Rust
-        run: cargo check --manifest-path src-tauri/Cargo.toml --features updates
+      - name: Verifica il modulo aggiornamenti GitHub
+        run: cargo check --manifest-path src-tauri/Cargo.toml
       - name: Compila installer Windows NSIS
         run: |
           npm install
@@ -55,7 +55,7 @@ jobs:
           $tag = "preview-$version"
           gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag "$($installer.FullName)" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "OLEA Desktop $version - Anteprima Windows" --notes "Installer di anteprima non firmato, senza updater. L’aggiornamento automatico si attiva con la prima release stabile firmata. Database SQLite invariato." --prerelease
+            gh release create $tag "$($installer.FullName)" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "OLEA Desktop $version - Anteprima Windows" --notes "Installer con aggiornamenti integrati da GitHub Releases dopo conferma, verifica SHA-256 e backup SQLite. Non richiede software aggiuntivi." --prerelease
           } else {
             gh release upload $tag "$($installer.FullName)" --repo $env:GITHUB_REPOSITORY --clobber
           }

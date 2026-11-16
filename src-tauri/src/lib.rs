@@ -1,4 +1,4 @@
-//! OLEA desktop: archivio transazionale SQLite, backup e updater firmato.
+//! OLEA desktop: archivio transazionale SQLite, backup e aggiornamenti da GitHub.
 //! La vista e i calcoli di OLEA Site 2.0 restano nel frontend.
 use rusqlite::{params, Connection, OptionalExtension, TransactionBehavior};
 use serde::Serialize;
@@ -10,6 +10,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tauri::{AppHandle, Manager};
+mod github_updates;
 
 const COLLECTIONS: [&str; 7] = [
     "orchards", "harvests", "customers", "sales", "payments", "expenses", "adjustments",
@@ -284,57 +285,9 @@ fn database_location(app: AppHandle) -> Result<String, String> {
     Ok(db_folder(&app)?.join("olea.sqlite3").to_string_lossy().to_string())
 }
 
-#[cfg(feature = "updates")]
-#[tauri::command]
-async fn check_updates(app: AppHandle) -> Result<Option<String>, String> {
-    use tauri_plugin_updater::UpdaterExt;
-    // Timeout esplicito: l'assenza di rete non deve bloccare l'applicazione.
-    let updater = app.updater_builder()
-        .timeout(Duration::from_secs(20))
-        .build().map_err(|e| e.to_string())?;
-    let update = updater.check().await.map_err(|e| e.to_string())?;
-    Ok(update.map(|u| u.version))
-}
-
-#[cfg(not(feature = "updates"))]
-#[tauri::command]
-async fn check_updates(_app: AppHandle) -> Result<Option<String>, String> {
-    Err("Gli aggiornamenti richiedono un repository GitHub e una versione firmata. Configura la pipeline nel progetto OLEA.".into())
-}
-
-#[cfg(feature = "updates")]
-#[tauri::command]
-async fn install_updates(app: AppHandle) -> Result<(), String> {
-    use tauri_plugin_updater::UpdaterExt;
-    let updater = app.updater_builder()
-        .timeout(Duration::from_secs(30))
-        .build().map_err(|e| e.to_string())?;
-    if let Some(update) = updater.check().await.map_err(|e| e.to_string())? {
-        // Copia SQLite consistente prima di ogni installazione; se non riesce,
-        // interrompi l'aggiornamento senza rischiare le registrazioni.
-        let (conn, database) = connect_app(&app)?;
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)
-            .map_err(|e| e.to_string())?.as_secs();
-        let backup_folder = database.parent().ok_or("Cartella database non trovata")?;
-        backup_snapshot(&conn, backup_folder, &format!("pre-update-{timestamp}.sqlite3"))?;
-        drop(conn);
-        update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
-        // Su Windows l'installer Tauri chiude l'applicazione automaticamente.
-    }
-    Ok(())
-}
-
-#[cfg(not(feature = "updates"))]
-#[tauri::command]
-async fn install_updates(_app: AppHandle) -> Result<(), String> {
-    Err("Updater non configurato: prima pubblica una release firmata su GitHub.".into())
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
-    #[cfg(feature = "updates")]
-    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     builder
         .invoke_handler(tauri::generate_handler![
             load_archive,
@@ -342,8 +295,8 @@ pub fn run() {
             list_archive_history,
             backup_database,
             database_location,
-            check_updates,
-            install_updates
+            github_updates::check_updates,
+            github_updates::install_updates
         ])
         .run(tauri::generate_context!())
         .expect("Impossibile avviare OLEA");

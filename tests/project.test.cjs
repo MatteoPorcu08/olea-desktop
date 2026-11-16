@@ -9,7 +9,7 @@ test('frontend fornisce le sezioni di gestione',()=>{
   for(const name of ['dashboard','reports','sales','payments','customers','orchards','harvests','stock','expenses','archive']){
     assert.ok(html.includes(`data-nav="${name}"`), name);
   }
-  assert.ok(!html.includes('data-action="check-updates"'), 'nessun comando di aggiornamento nella toolbar');
+  assert.ok(html.includes('data-action="check-updates"'));
 });
 test('CRUD, salvataggio asincrono e importazione OLEA in frontend',()=>{
   const js=file('frontend/app.js');
@@ -25,10 +25,9 @@ test('SQLite: WAL + transazione + storico + backup consistente',()=>{
   const rust=file('src-tauri/src/lib.rs');
   for(const bit of ['PRAGMA journal_mode=WAL','PRAGMA synchronous=FULL','TransactionBehavior::Immediate','archive_history','VACUUM INTO','expected_revision','integrity_check'])assert.ok(rust.includes(bit),bit);
 });
-test('installer manuale e release firmate non automatiche',()=>{
+test('build GitHub e updater SHA-256 integrato',()=>{
   const workflow=file('.github/workflows/release.yml');
   assert.match(workflow,/workflow_dispatch:/);
-  assert.ok(!workflow.includes("tags: ['v*']"));
   assert.match(workflow,/TAURI_SIGNING_PRIVATE_KEY:/);
   assert.match(workflow,/--features updates/);
   assert.match(file('scripts/configure_updates.py'),/latest\.json/);
@@ -43,20 +42,24 @@ test('modulo vendite con barra Salva sempre visibile',()=>{
   assert.ok(js.includes("'Salva vendita'"));
 });
 
-test('updater firmato: workflow, setup locale e rilascio stabile',()=>{
-  const release=file('.github/workflows/release.yml');
-  assert.match(release,/workflow_dispatch:/);
-  assert.match(release,/TAURI_SIGNING_PRIVATE_KEY:/);
-  assert.match(release,/uploadUpdaterJson: true/);
-  assert.match(release,/updaterJsonPreferNsis: true/);
-  assert.match(release,/scripts\/configure_updates.py/);
-  assert.match(release,/createUpdaterArtifacts|--features updates/);
-  const setup=file('scripts/setup-update-signing.ps1');
-  assert.ok(setup.includes('gh secret set TAURI_SIGNING_PRIVATE_KEY'));
-  assert.ok(setup.includes('gh variable set OLEA_UPDATER_PUBKEY'));
-  const rust=file('src-tauri/src/lib.rs');
-  assert.ok(rust.includes('pre-update-'));
+test('CI Windows pubblica release e nessun tool extra è richiesto sul PC',()=>{
+  const ci=file('.github/workflows/ci.yml');
+  assert.ok(ci.includes('gh release create'));
+  assert.ok(ci.includes('npx tauri build'));
   const js=file('frontend/app.js');
-  assert.ok(!js.includes('setTimeout(()=>checkForUpdates(true),1400)'));
-  assert.ok(js.includes('aggiornamenti automatici restano disattivati'));
+  assert.ok(js.includes('setTimeout(()=>checkForUpdates(true),1800)'));
+  const cargo=file('src-tauri/Cargo.toml');
+  assert.ok(cargo.includes('sha2 = "0.10"'));
+  assert.ok(cargo.includes('reqwest ='));
+});
+
+test('updater GitHub integrato e protetto da verifica hash SHA256',()=>{
+  const rust=file('src-tauri/src/github_updates.rs');
+  const js=file('frontend/app.js');
+  assert.match(rust,/api.github.com\/repos\/MatteoPorcu08\/olea-desktop\/releases/);
+  assert.match(rust,/Sha256::digest/);
+  assert.match(rust,/pre-update-/);
+  assert.match(rust,/expected_version/);
+  assert.match(js,/expectedVersion:info.version/);
+  assert.match(js,/checkForUpdates\(true\),1800/);
 });

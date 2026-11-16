@@ -159,7 +159,7 @@ function renderArchive(){const history=loadHistory();const total=['orchards','ha
 <div class="archive-actions"><article class="archive-card"><span class="metric-icon">${ico('download')}</span><h3>Esporta backup completo</h3><p>Scarica tutti gli oliveti, clienti, raccolte, vendite, incassi, spese e rettifiche in un file JSON.</p><button class="btn btn-primary" data-action="backup">${ico('download')} Scarica backup JSON</button></article><article class="archive-card"><span class="metric-icon">${ico('upload')}</span><h3>Ripristina o importa dati</h3><p>Carica un backup OLEA Site o un archivio esportato da una precedente versione OLEA desktop / HTML.</p><button class="btn btn-light" data-action="import">${ico('upload')} Importa archivio</button></article><article class="archive-card"><span class="metric-icon">${ico('file-json')}</span><h3>Esporta tabelle CSV</h3><p>Apri i dati in Excel: vendite, spese, produzione, clienti, incassi e oliveti.</p><button class="btn btn-light" data-action="export-csv">${ico('download')} Esporta CSV</button></article><article class="archive-card"><span class="metric-icon">${ico('list-checks')}</span><h3>Dati di prova</h3><p>Vuoi esplorare il gestionale? Puoi caricare un esempio, solo se l'archivio è ancora vuoto.</p><button class="btn btn-soft" data-action="demo">${ico('plus')} Carica esempio</button></article></div>
 ${panel('Stato archivio','Dati disponibili in questo browser',`<div class="archive-stats">${[['Registrazioni',total],['Oliveti',db.orchards.length],['Vendite',db.sales.length],['Clienti',db.customers.length],['Spese',db.expenses.length],['Incassi',db.payments.length]].map(([k,v])=>`<div><strong>${number(v,0)}</strong><span>${k}</span></div>`).join('')}</div><p class="small-note" style="margin-top:17px">Ultimo salvataggio: ${esc(db.updated?new Date(db.updated).toLocaleString('it-IT'):'non ancora effettuato')}.</p>`)}
 ${panel('Cronologia di recupero','Ultime modifiche recuperabili dal database',history.length?tbl(['Data del salvataggio','Tipo','Azione'],history.map((x,i)=>`<tr><td>${esc(new Date(x.at).toLocaleString('it-IT'))}</td><td>Copia precedente</td><td><button class="btn btn-light btn-sm" data-action="restore-history" data-index="${i}">Ripristina</button></td></tr>`)):emptyState('Nessuna copia precedente','Le copie di recupero compaiono dopo le modifiche.','hard-drive-download'))}
-<div class="desktop-management"><article class="panel desktop-management-card"><h3>Database SQLite</h3><p>Archivio sul disco, transazioni atomiche e backup giornalieri. Non viene eliminato quando aggiorni il programma.</p><div class="storage-path" id="desktop-storage-location">${DESKTOP?esc(desktopLocation):'Anteprima web: salvataggio nel browser'}</div><button class="btn btn-light" data-action="backup-database">${ico('hard-drive-download')} Crea copia del database</button></article><article class="panel desktop-management-card"><h3>Aggiornamenti manuali</h3><p>Per ora OLEA non controlla né installa aggiornamenti automaticamente. Puoi scaricare le nuove versioni dalla pagina Releases del repository GitHub.</p><span class="small-note">I tuoi dati SQLite rimangono separati dall’installazione.</span></article></div>
+<div class="desktop-management"><article class="panel desktop-management-card"><h3>Database SQLite</h3><p>Archivio sul disco, transazioni atomiche e backup giornalieri. Non viene eliminato quando aggiorni il programma.</p><div class="storage-path" id="desktop-storage-location">${DESKTOP?esc(desktopLocation):'Anteprima web: salvataggio nel browser'}</div><button class="btn btn-light" data-action="backup-database">${ico('hard-drive-download')} Crea copia del database</button></article><article class="panel desktop-management-card"><h3>Aggiornamenti integrati</h3><p>OLEA controlla GitHub e scarica il nuovo installer dopo conferma. Verifica l’impronta SHA-256 e salva un backup SQLite prima di aggiornare.</p><button class="btn btn-primary" data-action="check-updates">${ico('download')} Verifica aggiornamenti</button></article></div>
 <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><span class="small-note">Puoi cambiare campagna dal selettore in alto senza perdere gli altri anni.</span><button class="btn btn-danger" data-action="clear">${ico('trash-2')} Cancella archivio</button></div>`;}
 function loadHistory(){if(DESKTOP)return desktopHistory;try{const h=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');return Array.isArray(h)?h:[];}catch{return [];}}
 function setSeasonOptions(){const sel=$('#season-select');const years=seasonYears();const old=sel.value;sel.innerHTML=years.map(y=>`<option value="${y}" ${y===ui.season?'selected':''}>${y}</option>`).join('');sel.value=String(ui.season);}
@@ -270,7 +270,8 @@ async function bootDesktop(){
    ui.season=seasonYears()[0]||CURRENT_YEAR;
    setSaveStatus(true);render();
    if(response.migratedFromV2)toast('Dati della versione 2.1 importati nel nuovo database SQLite.');
-   // Gli aggiornamenti automatici restano disattivati: nuove versioni solo tramite installazione manuale.
+   setTimeout(()=>checkForUpdates(true),1800);
+   setTimeout(()=>checkForUpdates(true),1400);
  }catch(e){
    desktopReady=false;setSaveStatus(false);
    toast('Impossibile aprire il database: '+String(e),'error');
@@ -283,17 +284,16 @@ async function makeDatabaseBackup(){
  try{const path=await desktopInvoke('backup_database');toast('Copia SQLite creata in: '+path);}catch(e){toast('Backup non riuscito: '+String(e),'error');}
 }
 async function checkForUpdates(silent=false){
- if(!DESKTOP){if(!silent)toast('Gli aggiornamenti automatici sono disponibili nell’app Windows.');return;}
+ if(!DESKTOP){if(!silent)toast('Gli aggiornamenti sono disponibili nell’app Windows.');return;}
  if(!desktopReady||saveBusy||updateCheckBusy)return;
- if(ui.openForm){if(!silent)toast('Chiudi o salva la registrazione prima di aggiornare.');return;}
+ if(ui.openForm){if(!silent)toast('Completa la registrazione prima di aggiornare.');return;}
  updateCheckBusy=true;
  try{
-   const version=await desktopInvoke('check_updates');
-   if(!version){if(!silent)toast('OLEA è aggiornato.');return;}
-   if(!confirm('Disponibile OLEA '+version+'. Vuoi installare l’aggiornamento verificato? Verrà creato un backup del database.'))return;
-   toast('Creazione backup, download e installazione dell’aggiornamento…');
-   await desktopInvoke('install_updates');
-   toast('Aggiornamento installato. Riavvia OLEA se non si è riaperto automaticamente.');
+   const info=await desktopInvoke('check_updates');
+   if(!info){if(!silent)toast('OLEA è già aggiornato.');return;}
+   if(!confirm('OLEA '+info.version+' è disponibile su GitHub. Vuoi scaricarlo e aggiornarlo ora? Prima sarà creato un backup SQLite. La finestra verrà chiusa e l’aggiornamento si installerà automaticamente.'))return;
+   toast('Download, verifica SHA-256 e backup in corso…');
+   await desktopInvoke('install_updates',{expectedVersion:info.version});
  }catch(e){if(!silent)toast('Aggiornamento non riuscito: '+String(e),'error');}
  finally{updateCheckBusy=false;}
 }
