@@ -20,6 +20,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+      - name: Controlla sintassi JavaScript
+        run: |
+          node --check frontend/app.js
+          node --check tests/project.test.cjs
       - name: Test frontend
         run: npm run test:js
       - name: Test database SQLite

@@ -90,3 +90,15 @@ table{border-spacing:0} table tbody tr{transition:background .12s}table tbody tr
 #entry-form>.dialog-footer{flex:0 0 auto;position:relative;z-index:1;box-shadow:0 -6px 16px rgba(18,55,35,.05);}
 #entry-form button[type="submit"]{min-height:43px;font-size:12.5px;}
 @media(max-width:760px){#entry-form>.dialog-footer{flex-wrap:wrap;gap:9px;}#entry-form>.dialog-footer>.right{width:100%;justify-content:flex-end;}}
+
+/* OLEA 3.0.5 - Mezzadria / mes'e pari configurabile per oliveto. */
+.field .checkbox-row{display:flex;gap:11px;align-items:center;padding:11px 13px;background:#f0f7ef;border:1px solid #d4e8d7;border-radius:11px;color:#285239;font-size:13px;font-weight:800;cursor:pointer;}
+.field .checkbox-row input[type="checkbox"]{display:block;flex:0 0 19px;width:19px;height:19px;min-height:19px;padding:0;margin:0;accent-color:#286d4c;cursor:pointer;}
+#owner-share-field{background:#f8faf7;border:1px solid #e4ece2;padding:15px;border-radius:12px;}
+#owner-share-field input{font-variant-numeric:tabular-nums;}
+.mesepai-pill{margin-bottom:15px;padding:8px 10px;border-radius:10px;background:#eaf5ed;color:#256c45;font-size:11px;font-weight:800;line-height:1.5;}
+.mesepai-pill.neutral{background:#f2f4f0;color:#7a887d;font-weight:600;}
+.summary-strip.summary-strip-five{grid-template-columns:repeat(5,minmax(0,1fr));}
+@media(max-width:1370px){.summary-strip.summary-strip-five{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:760px){.summary-strip.summary-strip-five{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:430px){.summary-strip.summary-strip-five{grid-template-columns:1fr;}}

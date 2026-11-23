@@ -59,6 +59,17 @@ fn validate_archive(v: &Value) -> Result<(), String> {
             if id.is_empty() || !ids.insert(id) {
                 return Err(format!("ID mancante o duplicato in '{collection}'"));
             }
+            if collection == "orchards" {
+                if row.get("sharecropping").is_some_and(|v| !v.is_boolean()) {
+                    return Err("La spunta mezzadria deve essere vera o falsa".into());
+                }
+                if let Some(percentage) = row.get("ownerSharePercent") {
+                    let pct = percentage.as_f64().ok_or("Percentuale proprietario non numerica")?;
+                    if !pct.is_finite() || !(0.0..=100.0).contains(&pct) {
+                        return Err("La percentuale proprietario deve essere tra 0 e 100".into());
+                    }
+                }
+            }
             for key in ["liters", "olivesKg", "price", "amount", "millingCost", "hectares", "trees"] {
                 if let Some(number) = row.get(key) {
                     let n = number.as_f64().ok_or_else(|| format!("{collection}.{key} non è numerico"))?;
@@ -334,6 +345,21 @@ mod tests {
         invalid["sales"] = json!([{"id":"a"},{"id":"a"}]);
         assert!(save_db(&mut conn, &invalid, 0).is_err());
         assert_eq!(read_db(&conn).unwrap().1, 0);
+    }
+    #[test]
+    fn test_owner_share_validation() {
+        let mut archive = empty_archive();
+        archive["orchards"] = json!([{"id":"o1","name":"Oliveto","sharecropping":true,"ownerSharePercent":35.5}]);
+        assert!(validate_archive(&archive).is_ok());
+        archive["orchards"][0]["ownerSharePercent"] = json!(101);
+        assert!(validate_archive(&archive).is_err());
+        archive["orchards"][0]["ownerSharePercent"] = json!(-0.5);
+        assert!(validate_archive(&archive).is_err());
+        archive["orchards"][0]["ownerSharePercent"] = json!(50);
+        archive["orchards"][0]["sharecropping"] = json!("yes");
+        assert!(validate_archive(&archive).is_err());
+        archive["orchards"] = json!([{"id":"old","name":"Oliveto precedente"}]);
+        assert!(validate_archive(&archive).is_ok());
     }
     #[test]
     fn test_migrates_existing_v2_json_without_removing_it() {

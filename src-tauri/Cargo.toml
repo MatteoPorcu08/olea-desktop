@@ -1,6 +1,6 @@
 [package]
 name = "olea-desktop"
-version = "3.0.4"
+version = "3.0.5"
 description = "OLEA — Gestione produzione e vendita olio di oliva"
 authors = ["OLEA Project"]
 edition = "2021"

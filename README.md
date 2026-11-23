@@ -1,4 +1,13 @@
-# OLEA Desktop 3.0.4 — Aggiornamenti integrati, Rust + Tauri + SQLite
+# OLEA Desktop 3.0.5 — Aggiornamenti integrati, Rust + Tauri + SQLite
+
+## Mes’e pari (mezzadria) per oliveto
+
+Nella scheda **Nuovo oliveto** o **Modifica oliveto** è disponibile la spunta *Mes’e pari / mezzadria*. Quando è attiva puoi indicare una **percentuale di prodotto spettante al proprietario** da 0 a 100 (50% iniziale). La tua quota è il complemento a 100.
+
+Il campo **Olio ottenuto (litri)** nella raccolta indica sempre la produzione **totale**. Il registro delle raccolte, le schede degli oliveti e le esportazioni mostrano il totale e le due quote. **Solo la tua quota alimenta il magazzino**. Il fatturato continua a derivare esclusivamente dalle vendite realmente registrate, e i costi di frantoio restano quelli inseriti (non vengono divisi in automatico).
+
+La percentuale è una proprietà dell’oliveto e si applica a tutte le sue raccolte, comprese quelle già registrate. Modificandola con uno storico presente, OLEA chiede conferma e blocca qualsiasi modifica che creerebbe giacenze negative in una campagna. Prima di correggere un accordo storico, è consigliabile esportare un backup JSON. Gli oliveti precedenti senza spunta restano al **100% di quota tua**.
+
 
 Questa versione aggiorna OLEA direttamente dal programma: controlla automaticamente GitHub Releases all'avvio, propone il nuovo installer e, **solo dopo conferma**, scarica e controlla l'impronta SHA-256 pubblicata da GitHub, esegue un backup SQLite e avvia l'installer NSIS Windows in modalità silenziosa. **Non serve installare GitHub CLI, Node, Rust o altri programmi sul PC.**
 
