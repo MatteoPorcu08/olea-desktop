@@ -4,10 +4,10 @@
   "data_fingerprint": "2de14d95b74dbdc1308216e0121a01069189d3a95f74ffe33e92c7e82929cac0",
   "data_head": "025db2bab258447c77b00a63a3c96719f0ad00be",
   "device_id": "3df2f24640a745cebdddfc933c646ee0",
-  "last_seen_utc": "2026-11-26T13:11:03+00:00",
+  "last_seen_utc": "2026-11-26T13:11:13+00:00",
   "local_pending": 0,
   "name": "MR",
   "remote_pending": 0,
   "schema": 2,
-  "state": "locked"
+  "state": "updated"
 }
